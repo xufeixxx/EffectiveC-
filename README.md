@@ -65,13 +65,48 @@
 
 **3. 尽可能使用const（Use const whenever possible.)**
 
-const 出现在星号左边，表示被指物是常量，如果出现在星号右边，表示指针本身是常量，如果出现在星号两边，表示被指物和指针都是常量
+const 出现在星号左边，表示被指物是常量，如果出现在星号右边，表示指针本身是常量，如果出现在星号两边，表示被指物和指针都是常量。
 
-const最强的用法是在函数声明时，如果将返回值设置成const，或者返回指针设置成const，可以避免很多用户错误造成的意外。
+关于STL迭代器的const：
 
+    std::vector<int> vec;
+    const std::vector<int>::iterator iter = vec.begin();
+    //此处的const的作用是说明迭代器iter不可以再指向别的元素，iter++(❌), *iter = 10(✔)
+    
+    std::vector<int>::const_iterator citer = vec.begin();//*citer = 10(❌) citer++(✔)
+
+const最强的用法是在函数声明时，如果将返回值设置成const，或者返回指针设置成const，可以避免很多用户错误造成的意外。  
+
+const成员函数：
+C++ 的一个重要的特性是，如果只是常量性的不同的成员函数可以被重载。
+
+    class TextBlock {
+    private:
+	    std::string text;
+    public:
+	    TextBlock(std::string str) :text(str) {}
+	    const char& operator[](const std::size_t position)const {//const成员函数，前面的const代表返回的char的引用不可被修改，后面的const代表此函数不会修改调用此函数的对象。
+		    return text[position];
+	    }
+	    char& operator[](const std::size_t position) {
+		    return text[position];
+	    }
+	    void show() { std::cout << text << std::endl; }
+    };
+    
+    TextBlock tb("Hello");
+	std::cout << tb[1] << '\n';//调用non-const成员函数
+
+	const TextBlock ctb("Manange");//调用const成员函数
+	std::cout << ctb[1] << '\n';
+
+
+C++编译器会强制执行bitwise constness,即不改变对象内的任何一个bit。但是即使是这样也会在出现概念上的non-const。
+如下所示，将一个指针作为成员变量：
 概念上的const：
 
     考虑这样一段代码
+    
     class CTextBlock{
         public:
             char& operator[](std::size_t position)const{
@@ -83,10 +118,29 @@ const最强的用法是在函数声明时，如果将返回值设置成const，�
     const CTextBlock cctb("Hello");
     char *pc = &cctb[0];
     *pc = 'J'
-    这种情况下不会报错，但是一方面声明的时候说了是const，一方面还修改了值。这种逻辑虽然有问题但是编译器并不会报错
+    
+    这种情况下不会报错，但是一方面声明的时候说了是const，一方面还修改了值。这种逻辑虽然有问题但是编译器并不会报错。所以一定要考虑概念上的常量性。
+ 
+logical constness主张一个const成员函数可以修改对象变量的某一位。但需要在声明此变量的时候加上mutable。
+ 
+    mutable int Count;
+    
+即可在const成员函数中对Count进行修改。
 
 但是const使用过程中会出现想要修改某个变量的情况，而另外一部分代码确实不需要修改。这个时候最先想到的方法就是重载一个非const版本。
-但是还有其他的方法，例如将非const版本的代码调用const的代码
+但是还有其他的方法，例如将非const版本的代码调用const的代码（const_cast<>()），就是说使用常量性转除。
+
+同时常量性转除也可以用来避免代码重复。假如一个const成员函数和一个non-const成员函数都实现了相同的功能，那么可能会造成大量的代码重复。需要在非const函数中调用const函数来避免代码重复。
+
+    return
+        const_cast<char&>(
+            static_cast<const TextBlock&>(*this)[position]
+        );
+        
+   //涉及到两次转除，static_cast是安全的转除，是将non-const转除成const.
+   //const_cat是不安全转除，会将const去掉。
+
+
 
 总结：
 + 将某些东西声明为const可以帮助编译器检查出错误。
