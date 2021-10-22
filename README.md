@@ -137,9 +137,8 @@ logical constness主张一个const成员函数可以修改对象变量的某一�
             static_cast<const TextBlock&>(*this)[position]
         );
         
-   //涉及到两次转除，static_cast是安全的转除，是将non-const转除成const.
+   //涉及到两次转除，static_cast是安全的转除，是将non-const转除成const。
    //const_cat是不安全转除，会将const去掉。
-
 
 
 总结：
