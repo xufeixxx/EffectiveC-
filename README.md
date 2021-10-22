@@ -21,7 +21,7 @@
 
 **2. 尽量以const, enum, inline替换#define（Prefer consts,enums, and inlines to #defines)**
 
-实际是：应该让编译器代替预处理器定义，因为预处理器定义的变量并没有进入到symbol table里面。编译器有时候会看不到预处理器定义
+实际是：应该让编译器代替预处理器定义，因为预处理器定义的变量并没有进入到symbol table(符号表)里面。编译器有时候会看不到预处理器定义
 
 所以用 
 
@@ -31,13 +31,26 @@
     
     #define Ratio 1.653
 
-实际上在这个转换中还要考虑到指针，例如需要把指针写成const char* const authorName = "name";而不是只用一个const
+实际上在这个转换中还要考虑到指针，例如需要把指针写成const char* const authorName = "name";而不是只用一个const。第一个const是指指针所指的内容不可以改变（也就是字符串），第二个const是指针的内容不可以改变。
 
 以及在class类里面的常量，为了防止被多次拷贝，需要定义成类的成员（添加static）例如
 
     class GamePlayer{
-        static const int numT = 5;
+        static const int numT = 5; //static代表静态成员，表示了无论创建多少个对象都只有一个numT副本。
     }
+    
+本来static成员变量是不可以再类声明（头文件）中进行初始化的，只能在实现类的函数文件中进行初始化。即
+
+    class Widget{
+    private:
+        static int Count;//这是可以的对变量只进行了声明，然而并不允许对它赋值。
+    }
+    
+类的实现文件中，可以进行初始化：
+
+    int Widget::Count = 1;//注意不需要再使用static，但必须使用::来进行赋值。
+    
+例外的情况就是，如果类的static成员变量是const以及成员变量为enum(枚举)的话就可以在头文件中进行初始化。
 
 对于类似函数的宏，最好改用inline函数代替，例如：
     
