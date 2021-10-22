@@ -1,4 +1,4 @@
-# EffectiveC-
+# EffectiveC++
 # Note Of Effective C++ And More Effective C++
 
 ## Effective C++
