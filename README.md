@@ -222,9 +222,21 @@ virtual，这个类的自动生成的析构函数才是virtual。
 
 **6. 若不想使用编译器自动生成的函数，就该明确拒绝（Explicitly disallow the use of compiler-generated functions you do not want)**
 
-这一条主要是针对类设计者而言的，有一些类可能从需求上不允许两个相同的类，例如某一个类表示某一个独一无二的交易记录，那么编译器自动生成的拷贝和复制函数就是无用的，而且是不想要的
+这一条主要是针对类设计者而言的，有一些类可能从需求上不允许两个相同的类，例如某一个类表示某一个独一无二的交易记录，那么编译器自动生成的拷贝和复制函数就是无用的，而且是不想要的.
+可以将赋值运算符和复制构造函数放到private中，但是这种情况友元以及成员函数还是可以访问到。
+还有一种方法就是继承一个将赋值运算符和复制构造函数放到private中的基类，这样任何时候派生类的赋值运算符和复制构造函数都不可以被访问到。
 
-总结：
+C++11 有一个delete函数可以禁止生成默认的函数。用法：
+
+	class X
+	{           
+    	public: 
+      		X(); 
+      		X(const X&) = delete; //声明拷贝构造函数为 deleted 函数
+      		X& operator = (const X &) = delete; //声明拷贝赋值操作符为 deleted 函数
+	};
+	
+	
 + 可以将不需要的默认自动生成函数设置成delete的或者弄一个private的父类并且继承下来
 
 **7. 为多态基类声明virtual析构函数（Declare destructors virtual in polymorphic base classes)**
