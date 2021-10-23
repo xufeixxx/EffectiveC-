@@ -210,6 +210,12 @@ C++对于定义在不同编译单元的non-local static对象初始化次序并�
 
 **5. 了解C++ 那些自动生成和调用的函数（Know what functions C++ silently writes and calls)**
 
+编译器自动创建的default构造函数和析构函数的作用是：主要用来处理“藏身幕后”的代码，比如它们的base classes的构造函数和析构函数。并且只有base class的析构函数为
+virtual，这个类的自动生成的析构函数才是virtual。
+
+对于赋值运算符，至于在一定条件下编译器才能生成默认的赋值运算符。即当成员变量为reference或者由const修饰的变量的时候，编译器会拒绝为对象生成默认的赋值运算符。需要自己
+去实现赋值运算符（reference是不可以改变指向对象的）。还有一种情况是当base class的赋值运算符为private时，derived class中同样不会存在由编译器生成的赋值运算符。
+记得一点，derived class的copy构造函数和赋值运算符都需要调用base class的copy构造函数和赋值运算符。
 
 总结：
 + 编译器可以自动为class生成default构造函数，拷贝构造函数，拷贝赋值操作符，以及析构函数
