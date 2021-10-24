@@ -282,7 +282,7 @@ C++11 有一个delete函数可以禁止生成默认的函数。用法：
     class DBConn{
     public:
         ~DBConn(){
-            db.close();//析构函数抛出异常,可以直接终止程序（abort）或者吞下异常。
+            db.close();//析构函数抛出异常,可以直接终止程序（abort）或者吞下异常来解决。
         }
     private:
         DBConnection db;
