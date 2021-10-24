@@ -252,7 +252,8 @@ C++11 有一个delete函数可以禁止生成默认的函数。用法：
     }
     class AtomicClock:public TimeKeeper{...}
     TimeKeeper *ptk = getTimeKeeper();
-    delete ptk;
+    delete ptk;//这里因为base class的析构函数时virtual，derived class的析构函数自然就是virtual，delete时就会按照从派生类到基类的顺序执行析构函数。不会造成内存泄漏。
+    
 除析构函数以外还有很多其他的函数，如果有一个函数拥有virtual 关键字，那么他的析构函数也就必须要是virtual的，但是如果class不含virtual函数,析构函数就不要加virtual了，因为一旦实现了virtual函数，那么对象必须携带一个叫做vptr(virtual table pointer)的指针，这个指针指向一个由函数指针构成的数组，成为vtbl（virtual table），这样对象的体积就会变大，例如：
 
     class Point{
@@ -261,7 +262,11 @@ C++11 有一个delete函数可以禁止生成默认的函数。用法：
         int x, y
     }
 
-本来上面那个代码只占用64bits(假设一个int是32bits)，存放一个vptr就变成了96bits，因此在64位计算机中无法塞到一个64-bits缓存器中，也就无法移植到其他语言写的代码里面了。
+本来上面那个代码只占用64bits(假设一个int是32bits)，存放一个vptr就变成了96bits，因此在64位计算机中无法塞到一个64-bits缓存器中，也就无法移植到其他语言写的代码里面了。所以不需要virtual
+析构的时候就绝对不能加。
+
+不要去继承一个带有non-virtual析构函数的类。
+当你想实现一个抽象基类但是手上又没有pure virtual函数的话，就将析构函数设为纯虚析构函数，但是为了派生类按顺序调用析构顺利进行，必须给予纯虚函数定义。
 
 总结：
 + 如果一个函数是多态性质的基类，应该有virtual 析构函数
