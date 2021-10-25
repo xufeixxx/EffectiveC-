@@ -252,7 +252,7 @@ C++11 有一个delete函数可以禁止生成默认的函数。用法：
     }
     class AtomicClock:public TimeKeeper{...}
     TimeKeeper *ptk = getTimeKeeper();
-    delete ptk;//这里因为base class的析构函数时virtual，derived class的析构函数自然就是virtual，delete时就会按照从派生类到基类的顺序执行析构函数。不会造成内存泄漏。
+    delete ptk;//这里如果base class的析构函数是virtual，derived class的析构函数自然就是virtual，delete时就会按照从派生类到基类的顺序执行析构函数。不会造成内存泄漏。
     
 除析构函数以外还有很多其他的函数，如果有一个函数拥有virtual 关键字，那么他的析构函数也就必须要是virtual的，但是如果class不含virtual函数,析构函数就不要加virtual了，因为一旦实现了virtual函数，那么对象必须携带一个叫做vptr(virtual table pointer)的指针，这个指针指向一个由函数指针构成的数组，成为vtbl（virtual table），这样对象的体积就会变大，例如：
 
