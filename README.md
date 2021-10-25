@@ -379,7 +379,7 @@ C++11 有一个delete函数可以禁止生成默认的函数。用法：
         Widget& operator=(int rhs){return *this;}
     }
     a = b = c;
-
+方便连锁赋值。
 **11. 在operator= 中处理“自我赋值” （Handle assignment to self in operator=)**
 
 主要是要处理 a[i] = a[j] 或者 *px = *py这样的自我赋值。有可能会出现一场安全性问题，或者在使用之前就销毁了原来的对象，例如
