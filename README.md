@@ -347,7 +347,8 @@ C++11 有一个delete函数可以禁止生成默认的函数。用法：
             logTransaction();
         }
     };
-这个时候代码会调用 Transaction 版本的logTransaction，因为在构造函数里面是先调用了父类的构造函数，所以会先调用父类的logTransaction版本，解决方案是不在构造函数里面调用，或者将需要调用的virtual弄成non-virtual的
+这个时候代码会调用 Transaction 版本的logTransaction，因为在构造函数里面是先调用了父类的构造函数，所以会先调用父类的logTransaction版本，根本原因就是在derived class对象的base class
+构造期间,对象的类型是base class而不是derived class。（一种非正式的说法就是，在base class构造期间，virtual函数不再是virtual函数）解决方案是不在构造函数里面调用，或者将需要调用的virtual弄成non-virtual的
 
 修改以后：
 
