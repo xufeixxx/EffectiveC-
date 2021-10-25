@@ -385,7 +385,7 @@ C++11 有一个delete函数可以禁止生成默认的函数。用法：
 
 主要是要处理 a[i] = a[j] 或者 *px = *py这样的自我赋值。有可能会出现一场安全性问题，或者在使用之前就销毁了原来的对象，例如
 
-原代码：
+原代码(没有自我赋值安全性和异常安全性)：
     
     class Bitmap{...}
     class Widget{
@@ -409,7 +409,8 @@ C++11 有一个delete函数可以禁止生成默认的函数。用法：
         return *this;
     }//出了作用域，原来的副本销毁
 
-或者有一个效率不太高的版本：
+或者有一个效率不太高的版本（自我赋值时效率不高）：
+
     Widget& Widget::operator=(const Widget& rhs){
         Bitmap *pOrig = pb;       //记住原先的pb
         pb = new Bitmap(*rhs.pb); //令pb指向 *pb的一个副本
