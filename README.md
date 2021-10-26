@@ -435,12 +435,18 @@ C++11 有一个delete函数可以禁止生成默认的函数。用法：
 
 **13. 以对象管理资源 （Use objects to manage resources)**
 
-主要是为了防止在delete语句执行前return，所以需要用对象来管理这些资源。这样当控制流离开f以后，该对象的析构函数会自动释放那些资源。
+主要是为了防止在delete语句执行前return，或者是在delete之前抛出了异常，造成内存泄漏。所以需要用对象来管理这些资源。这样当控制流离开f以后，该对象的析构函数会自动释放那些资源。
+
+RAII对象：获得资源后立刻将其放入管理对象中。并且管理对象还会运用析构函数来确保资源被释放。
+这些对象可以是auto_ptr,unique_ptr,shared_ptr。shared_ptr可以将多个指针指向同一个对象。unique_ptr和auto_ptr只能指向一个对象。unique比auto要好。
+
+
 例如shared_ptr就是这样的一个管理资源的对象。他是在自己的析构函数里面做delete操作。所以如果自己需要管理资源的时候，也要在类内进行delete，通过对象来管理资源
 
 总结：
 + 建议使用shared_ptr
 + 如果需要自定义shared_ptr，请通过定义自己的资源管理类来对资源进行管理
++ 使用unique_ptr来代替auto_ptr。他们都收RAII classes，它们在构造函数中获得资源并在析构函数中释放资源。
 
 **14. 在资源管理类中小心copying行为 （Think carefully about copying behavior in resource-managing classes)**
 
