@@ -464,7 +464,25 @@ RAII对象：获得资源后立刻将其放入管理对象中。并且管理对�
         Mutex *mutexPtr;
     }
     Lock m1(&m)//锁定m
-    Lock m2(m1);//好像是锁定m1这个锁。。而我们想要的是除了复制资源管理对象以外，还想复制它所包括的资源（deep copy）。通过使用shared_ptr可以有效避免这种情况。
+    Lock m2(m1);//这时m1和m2将会共同管理m，会造成混乱
+    
+有两种方式可供选择：
+1.禁止复制，对Copying函数加delete
+
+2.使用引用计数法，就是使用shared_ptr,有效的管理多个指针指向同一个对象。但是shared_ptr调用析构时不应该是删除所指物，对于上面的情况已那该时unlock。
+
+	class Lock{
+	public:
+	    explicit Lock(Mutex* pm):(mutexPtr(pm,unlock)){
+	          lock(mutexPtr.get());
+	    }
+	private:
+	    std::shared_ptr<Mutex> mutexPtr;
+	}
+    
+对一种资源管理类及逆行复制的时候，应该使用deep copy。
+
+还可以使用auto_ptr移交管理权。
 
 需要注意的是：copy函数有可能是编译器自动创建出来的，所以在使用的时候，一定要注意自动生成的函数是否符合我们的期望
 
