@@ -533,13 +533,13 @@ RAII对象：获得资源后立刻将其放入管理对象中。并且管理对�
     processWidget(new Widget, priority());// 错误，这里函数是explicit的，不允许隐式转换（shared_ptr需要给他一个普通的原始指针
     processWidget(shared_ptr<Widget>(new Widget), priority()) // 可能会造成内存泄漏
     
-    内存泄漏的原因为：先执行new Widget，再调用priority， 最后执行shared_ptr构造函数，那么当priority的调用发生异常的时候，new Widget返回的指针就会丢失了。当然不同编译器对上面这个代码的执行顺序不一样。所以安全的做法是：
+    内存泄漏的原因为：由于程序执行的顺序的不固定，有可能是先执行new Widget，再调用priority， 最后执行shared_ptr构造函数（也可能有其他顺序），那么当priority的调用发生异常的时候，new Widget返回的指针就会丢失了。当然不同编译器对上面这个代码的执行顺序不一样。所以安全的做法是：
     
     shared_ptr<Widget> pw(new Widget)
     processWidget(pw, priority())
 
 总结：
-+ 凡是有new语句的，尽量放在单独的语句当中，特别是当使用new出来的对象放到智能指针里面的时候
++ 以独立的语句将newed对象存储于（置入）智能指针内。如果不这样做，一旦异常被抛出，又可能导致难以察觉的资源泄露。
 
 #### 四、设计与声明 (Designs and Declarations)
 
