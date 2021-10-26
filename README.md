@@ -492,20 +492,26 @@ RAII对象：获得资源后立刻将其放入管理对象中。并且管理对�
 
 **15. 在资源管理类中提供对原始资源的访问（Provide access to raw resources in resource-managing classes)**
 
-例如：shared_ptr<>.get()这样的方法，或者->和*方法来进行取值。但是这样的方法可能稍微有些麻烦，有些人会使用一个隐式转换，但是经常会出错：
+对于资源管理类来说原始资源就是它管理的资源。
+
+例如：shared_ptr<>.get()（get会获得泛型中的数据类型）这样的方法，或者->和*方法来进行取值。但是这样的方法可能稍微有些麻烦，有些人会使用一个隐式转换，但是经常会出错。
     
-    class Font; class FontHandle;
-    void changeFontSize(FontHandle f, int newSize){    }//需要调用的API
+    如下所示，Font是一个RAII class,管理着FontHandle。
     
-    Font f(getFont());
-    int newFontSize = 3;
+    class Fout{
+    private:
+         FontHandle f;
+    public:
+    	 explicit Font(FontHandle fh):f(fh){}
+	 ~Font(){releaseFont(f);}
+	 FontHandle get()const{return f;}//显示获得原始资源
+	 operator FontHandle() const {return f;} //隐式获得原始资源
+    }
+    
     changeFontSize(f.get(), newFontSize);//显式的将Font转换成FontHandle
     
-    class Font{
-        operator FontHandle()const { return f; }//隐式转换定义
-    }
     changeFontSize(f, newFontSize)//隐式的将Font转换成FontHandle
-    但是容易出错，例如
+    但是隐式容易出错，例如
     Font f1(getFont());
     FontHandle f2 = f1;就会把Font对象换成了FontHandle才能复制
 
