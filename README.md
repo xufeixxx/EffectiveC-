@@ -599,12 +599,22 @@ RAII对象：获得资源后立刻将其放入管理对象中。并且管理对�
 
 **21. 必须返回对象时，别妄想返回其reference  （Don't try to return a reference when you must return an object)**
 
+如果想返回引用会出现以下情况：
+
+1.如果是一个local static对象的话，函数结束的时候变量已经被销毁。
+
+2.如果是一个stack对象的话，无法调用delete来释放内存。
+
+3.如果使用local static对象的话，对于不同的之可能会是返回同样的结果。
+
 主要是很容易返回一个已经销毁的局部变量，如果想要在堆上用new创建的话，则用户无法delete，如果想要在全局空间用static的话，也会出现大量问题,所以正确的写法是：
 
     inline const Rational operator * (const Rational &lhs, const Rational &rhs){
         return Rational(lhs.n * rhs.n, lhs.d * rhs.d);
     }
-当然这样写的代价就是成本太高，效率会比较低
+当然这样写的代价就是成本太高，效率会比较低，将改变代码效率的事交给编译器吧。
+
++ 当你必须在“返回一个reference和返回一个object”之间抉择时，你的工作就是挑出行为正确的那个。就让编译器厂商为降低成本“鞠躬尽瘁”吧。
 
 **22. 将成员变量声明为private  （Declare data members private)**
 
