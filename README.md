@@ -622,7 +622,7 @@ RAII对象：获得资源后立刻将其放入管理对象中。并且管理对�
 
 同时，如果public的变量发生了改变，如果这个变量在代码中广泛使用，那么将会有很多代码遭到了破坏，需要重新写
 
-另外protected 并不比public更具有封装性，因为protected的变量，在发生改变的时候，他的子类代码也会受到破坏
+另外protected 并不比public更具有封装性，因为protected的变量，在发生改变的时候，他的子类代码也会受到破坏，从封装的角度看，其实只有两种访问权限，private（提供封装）和其他（不提供封装）。
 
 **23. 以non-member、non-friend替换member函数  （Prefer non-member non-friend functions to member functions)**
 
