@@ -649,7 +649,7 @@ RAII对象：获得资源后立刻将其放入管理对象中。并且管理对�
         wb.removeCookies();
     }
 
-这里的原因是：member可以访问class的private函数，enums，typedefs等，但是non-member函数则无法访问上面这些东西，所以non-member non-friend函数更好
+这里的原因是：member可以访问class的private函数，enums，typedefs等，但是non-member函数则无法访问上面这些东西，面向对象的守则是要求数据尽可能地被封装，这个可以从两个方面来理解，1.可以将更多的东西放到private中。2.对于public和protect要放置更少的对象。封装性越好就越有弹性去改变，也就是说我们改变private也就只会影响有限的客户。如果越多的函数可以访问变量那弹性就越差，封装性就越低。所以我们必须去追求一个很好的封装性。这也就是选择non-member的原因。也就是说当member和non-member提供同样的技能的话，就使用non-member。
 
 这里还提到了namespace的用法，namespace可以用来对某些便利函数进行分割，将同一个命名空间中的不同类型的方法放到不同文件中(这也是C++标准库的组织方式，例如：
     
@@ -663,6 +663,7 @@ RAII对象：获得资源后立刻将其放入管理对象中。并且管理对�
     namespace WebBrowserStuff{
         //所有与书签相关的便利函数
     }
++ 宁可拿non-member non-friend函数替换member函数。可以增加封装性、包裹弹性和机能扩充性。
 
 **24. 若所有参数皆需类型转换，请为此采用non-member函数  （Declare non-member functions when type conversions should apply to all parameters)**
 
