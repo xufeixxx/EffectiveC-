@@ -696,7 +696,7 @@ RAII对象：获得资源后立刻将其放入管理对象中。并且管理对�
     class Rational{}
     const Rational operator*(const Rational& lhs,const Rational& rhs);
     
-++ 如果你需要为某个函数的所有参数（包括被this指针所指的那个隐喻参数）进行类型转换，那么这个函数就必须是个non-member。
++ 如果你需要为某个函数的所有参数（包括被this指针所指的那个隐喻参数）进行类型转换，那么这个函数就必须是个non-member。
 
 
 **25. 考虑写出一个不抛异常的swap函数  （Consider support for a non-throwing swap)**
