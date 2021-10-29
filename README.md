@@ -667,20 +667,36 @@ RAII对象：获得资源后立刻将其放入管理对象中。并且管理对�
 
 **24. 若所有参数皆需类型转换，请为此采用non-member函数  （Declare non-member functions when type conversions should apply to all parameters)**
 
-例如想要将一个int类型变量和Rational变量做乘法，如果是成员函数的话，发生隐式转换的时候会因为不存在int到Rational的类型变换而出错：
-
+对classes支持隐式类型转换通常是个糟糕的主意，担当建立数值类型的时候却是个例外。
 
     class Rational{
-        public:
-        const Rational operator* (const Rational& rhs)const;
+    public:
+       Rational(int numerator = 0, int denominator = 1);//支持隐式转换，尽管有两个参数，但是都有默认参数，所以可以进行隐式转换。
+       int numerator() const;
+       int denominator() const;
+       const Rational operator* (const Rational& rhs) const;
     }
-    Rational oneHalf;
-    result = oneHalf * 2;
-    result = 2 * oneHalf;//出错，因为没有int转Rational函数
     
+对于上述的类，当进行混合式算数的时候：
+
+    Rational oneHalf;
+    result = oneHalf * 2;//成功
+    result = 2 * oneHalf;//出错。
+    
+成功的那句在编译期看来有点像：
+
+    const Rational temp(2);
+    result = oneHalf * temp;
+
+出错的那句出错的原因是，只有当参数被列于参数列内，这个参数才是隐式类型转换的合格参与者。成功的调用伴随一个放在参数列内的参数，第二次则没有。
+    
+然而一定要支持混合式算数运算。就让operator*成为一个non-member函数。
+
     non-member函数
     class Rational{}
-    const Rational operator*(const Rational& lhs, const Rational& rhs){}
+    const Rational operator*(const Rational& lhs,const Rational& rhs);
+    
+++ 如果你需要为某个函数的所有参数（包括被this指针所指的那个隐喻参数）进行类型转换，那么这个函数就必须是个non-member。
 
 
 **25. 考虑写出一个不抛异常的swap函数  （Consider support for a non-throwing swap)**
