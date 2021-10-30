@@ -701,33 +701,90 @@ RAII对象：获得资源后立刻将其放入管理对象中。并且管理对�
 
 **25. 考虑写出一个不抛异常的swap函数  （Consider support for a non-throwing swap)**
 
-写出一个高效、不容易发生误会、拥有一致性的swap是比较困难的，下面是对比代码：
+首先对于std中缺省的swap，效率并不是很好。见下面代码：
+	
+    class WidgetImpl {
+    private:
+	int a;
+	int b;
+	int c;
+    public:
+	WidgetImpl(int aa = 0, int bb = 0, int cc = 0) :a(aa), b(bb), c(cc) {}
+	void show() { std::cout << a << "\t" << b << "\t" << c << "\n"; }
+    };
+    
+    class Widget {
+    private:
+	WidgetImpl* pImpl;
+    public:
+	Widget() :pImpl(nullptr) {}
+	Widget(WidgetImpl& pw) {
+		pImpl = new WidgetImpl;
+		*pImpl = pw;
+	}
+	Widget(const Widget& rhs) {
+		pImpl = new WidgetImpl;
+		*pImpl = *rhs.pImpl;
+	}
 
-    修改前代码：
-    class Widget{
-        public:
-        Widget& operator=(const Widget& rhs){
-            *pImpl = *(rhs.pImpl);//低效
-        }
-        private:
-        WidgetImpl* pImpl;
+	Widget& operator=(const Widget& rhs) {
+		if (this == &rhs)
+			return *this;
+		delete pImpl;
+		pImpl = new WidgetImpl;
+		*pImpl = *rhs.pImpl;
+	}
+	void show() { pImpl->show(); }
+
+	void swap(Widget& other) noexcept {
+		std::swap(this->pImpl, other.pImpl);
+	}
+    };
+
+Widget的其中一个成员变量是一个指向WidgetImpl的指针。如果我们使用缺省的swap，即
+
+    std::swap(w123, w456);
+  
+将会出现复制三个Widgets和复制三个WidgetImpl的情况，效率很低。从上面看出我们只需要交换WidgetImpl的指针即可。所以在std中进行显式具体化（注意，我们不允许添加或修改std中的任何函数，但是可以为某一个模板函数提供，显式具体化版本。）。同时实现一个member swap函数（memeber函数不会抛出异常）。
+
+    namespace std {
+	template<> void swap<Widget>(Widget& lhs,Widget& rhs){
+		lhs.swap(rhs);
+	}
     }
     
-    修改后代码：
+对于非template class可以使用上面的方法。但是如果Widget和WidgetImpl都是template，情况就会不同了。
+
+    template<typename T>
+    class WidgetImpl{...}
+    template<typename T>
+    class Widget{...}
+    
+这样的话我们就不可以在std中实现显式具体化，其他的操作在std中就更不被允许了。
+
+解决方法很简单就是使用一个non-member函数来实现swap。
+
     namespace WidgetStuff{
-        template<typename T>
-        class Widget{
-            void swap(Widget& other){
-                using std::swap;      //此声明是std::swap的一个特例化，
-                swap(pImpl, other.pImpl);
-            }
-        };
         ...
-        template<typename T>           //non-member swap函数
-        void swap(Widget<T>& a, Widget<T>& b){//这里并不属于 std命名空间
-            a.swap(b);
-        }    
+	template<typename T>
+	class Widget{...};
+	...
+	
+	template<typename T>
+	void swap(Widget<T> &a,Widget<T> &b){a.swap(b);}
     }
+
+关于C++中的名称查找法则：
+
+1.对于swap，现在global作用域或者T所在命名空间内的任何T专属的swap。
+
+2.如果没有出现1的情况，需要在函数中声明uaing std::swap,则会使用std中的swap。（编译器还是会倾向于使用具体化版本的swap，如果没有就会使用一般版本的）
+
+总结：
+
+1. 提供一个public swap成员函数，让它高效的置换你的类型的两个对象值，不会抛出异常。
+2. 在你的class或template所在的命名空间内提供一个non-member swap，并令它调用上述swap成员函数。
+3. 如果你正编写一个class（而非class template），为你的class具体化std::swap。并令它调用你的swap成员函数。
 
 总结：
 + 当std::swap对我们的类型效率不高的时候，应该提供一个swap成员函数，且保证这个函数不抛出异常（因为swap是要帮助class提供强烈的异常安全性的）
