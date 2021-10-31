@@ -871,11 +871,12 @@ B：n个构造函数 + n个析构函数
     }
     则仍然会出现悬吊的变量，例如：
     const Point* pUpperLeft = &(boundingBox(*pgo).upperLeft());
-boundingBox会返回一个temp的新的，暂时的Rectangle对象，在这一整行语句执行完以后，temp就变成空的了，就成了悬吊的变量
+    boundingBox会返回一个temp的新的，暂时的Rectangle对象，在这一整行语句执行完以后，temp就变成空的了，就成了悬吊的变量
 
 总结：
 + 尽量不要返回指向private变量的指针引用等
 + 如果真的要用，尽量使用const进行限制，同时尽量避免悬吊的可能性
++ 避免返回handles（包括references、指针、迭代器）指向对象的内部。
 
 **29. 为“异常安全”而努力是值得的  （Strive for exception-safe code)**
 
