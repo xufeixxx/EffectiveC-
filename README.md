@@ -705,41 +705,41 @@ RAII对象：获得资源后立刻将其放入管理对象中。并且管理对�
 	
     class WidgetImpl {
     private:
-	int a;
-	int b;
-	int c;
+	 int a;
+	 int b;
+	 int c;
     public:
-	WidgetImpl(int aa = 0, int bb = 0, int cc = 0) :a(aa), b(bb), c(cc) {}
-	void show() { std::cout << a << "\t" << b << "\t" << c << "\n"; }
+	 WidgetImpl(int aa = 0, int bb = 0, int cc = 0) :a(aa), b(bb), c(cc) {}
+	 void show() { std::cout << a << "\t" << b << "\t" << c << "\n"; }
     };
     
     class Widget {
     private:
-	WidgetImpl* pImpl;
+	 WidgetImpl* pImpl;
     public:
-	Widget() :pImpl(nullptr) {}
-	Widget(WidgetImpl& pw) {
-		pImpl = new WidgetImpl;
-		*pImpl = pw;
-	}
-	Widget(const Widget& rhs) {
-		pImpl = new WidgetImpl;
-		*pImpl = *rhs.pImpl;
-	}
+	 Widget() :pImpl(nullptr) {}
+	 Widget(WidgetImpl& pw) {
+		 pImpl = new WidgetImpl;
+		 *pImpl = pw;
+	 }
+	 Widget(const Widget& rhs) {
+		 pImpl = new WidgetImpl;
+		 *pImpl = *rhs.pImpl;
+	 }
 
-	Widget& operator=(const Widget& rhs) {
-		if (this == &rhs)
+	 Widget& operator=(const Widget& rhs) {
+		 if (this == &rhs)
 			return *this;
-		delete pImpl;
-		pImpl = new WidgetImpl;
-		*pImpl = *rhs.pImpl;
-	}
-	void show() { pImpl->show(); }
+		 delete pImpl;
+		 pImpl = new WidgetImpl;
+		 *pImpl = *rhs.pImpl;
+	 }
+	 void show() { pImpl->show(); }
 
-	void swap(Widget& other) noexcept {
-		std::swap(this->pImpl, other.pImpl);
-	}
-    };
+	 void swap(Widget& other) noexcept {
+		 std::swap(this->pImpl, other.pImpl);
+	 }
+     };
 
 Widget的其中一个成员变量是一个指向WidgetImpl的指针。如果我们使用缺省的swap，即
 
