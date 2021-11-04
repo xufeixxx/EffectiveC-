@@ -1090,7 +1090,7 @@ public类继承指的是单向的更一般化的，例如：
 这个时候就需要通过设计来排除这种错误，例如通过定义一个FlyBird
 
 总结：
-+ public继承中，意味着每一个Base class的东西一定适用于他的derived class
++ public继承（is-a关系）中，意味着每一个Base class的东西一定适用于他的derived class。
 
 **33. 避免遮掩继承而来的名称  （Avoid hiding inherited names)**
 
