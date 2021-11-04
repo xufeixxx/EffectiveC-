@@ -978,41 +978,97 @@ inline 函数的过度使用会让程序的体积变大，内存占用过高，�
 + 不要只因为function template出现在头文件中，就将它们声明为inline。
 
 **31. 将文件间的编译依存关系降至最低  （Minimize compilation dependencies between files)**
+	
+支持”编译依存最小化”的一般构想是：相依于声明式，不要相依于定义式。基于此构想的两个手段是Handle classes和Interface classes.
 
-这个关系其实指的是一个文件包含另外一个文件的类定义等
+	Handle classes：在.h文件中用class 声明代替include头文件，把成员变量替换为指针的形式，理解的实现方式大致为：
+	
+	```cpp
+	// Person.h
+        #include <string>
+        using namespace std;
 
-那么如何实现解耦呢,通常是将实现定义到另外一个类里面，如下：
-    
-    原代码：
-    class Person{
-    private
-        Dates m_data;
-        Addresses m_addr;
-    }
-    
-    添加一个Person的实现类，定义为PersonImpl，修改后的代码：
-    class PersonImpl;
-    class Person{
-        private:
-        shared_ptr<PersonImpl> pImpl;
-    }
+        class PersonImp;
+        class Date;
+        class Address;
 
-在上面的设计下,就实现了解耦，即“实现和接口分离”
-
-与此相似的接口类还可以使用全虚函数
-    
-    class Person{
+        class Person
+        {   
         public:
-        virtual ~Person();
-        virtual std::string name() const = 0;
-        virtual std::string birthDate() const = 0;
-    }
-然后通过继承的子类来实现相关的方法
+            Person(const std::string& name,const Date& birthday,const Address& addr);
+            string Name() const;
+            string Birthday() const;
+            string Address() const;
 
+        private:
+            //string Name;            之前的定义方式,并且以include头文件实现
+            //Date Birthday;
+            //Address Address;
+            std::tr1::shared_ptr<PersonImp> pImpl;     
+            //通过提供的PersonImp接口类指针替换实现Person，起到了隔离的作用
+	
+	
+	// Person.cpp
+	#include "Person.h"                     //正在实现Person类
+	#include "PersonImpl.h"                 //使用PersonImp接口类实现Person
+                                        //类，必须使用其成员函数，所以要
+                                        //include接口类头文件
+	Person::Person(const std::string& name,const Date& birthday,const Address& addr)
+	:pImpl(new PersonImpl(name,birthday,addr))
+	{ }
+	string Person::Name() const
+	{
+    	return pImpl->Name();
+	}
+	...                                      //其余函数实现
+	
+	
+	// PersonImp.h
+	#include <string>
+	#include "MyAddress.h"
+	#include "MyDate.h"
+	using namespace std;
 
-总结：
-+ 应该让文件依赖于声明而不依赖于定义，可以通过上面两种方法实现
-+ 程序头文件应该有且仅有声明
+	class PersonImp                 //充当一个接口类，成员函数和Person相同，供
+                                //Person类通过指针调用
+	{
+	public:
+    	string Name() const
+    	{
+        	return Name;
+   	}
+   	...                          //其余成员函数定义
+
+	private:
+    	string Name;                //放置了所需的外来类对象
+    	MyAddress Address;
+    	MyDate Birthday;
+	};
+
+	```
+	
+	总之，此时任何接口类头文件产生的变化只会导致接口类头文件的变化而重新编译，以及Person实现文件由于include了接口类的头文件也要重新编译；而Person类头文件由于只使用了类的声明式，所以并不会重新编译，因此所有使用Person类的对象的文件也都不需要重新编译了，这样就大大降低了文件之间的编译依存关系。
+	另外，用Interface Classes也可以降低编译的依赖，实现方法大致是父类只提供虚方法，而将实现放置在子类中，再通过父类提供的一个特别的静态函数，生成子类对象，通过父类指针来进行操作；从而子类头文件的改动也不会导致使用该类的文件重新编译，因为用的是父类指针，客户include的是只是父类头文件，该静态方法实现如下：
+	
+	std::tr1::shared_ptr<Person> Person::Create(const std::string& name,                    
+                                            const Date& birthday, 
+                                            const Address& addr)
+	{
+    		return std::tr1::shared_ptr<Person>(new RealPerson(name, birthday, addr));
+	}
+	
+	
+	注：
+	对于C++类而言，如果它的头文件变了，那么所有这个类的对象所在的文件都要重编，但如果它的实现文件（cpp文件）变了，而头文件没有变（对外的接口不变），那么所有这个类的对象所在的文件都不会因之而重编。
+	编译依存最小化的设计策略：
+	
+	1、如果使用object references或object pointers可以完成任务，就不要用objects
+	
+	2、如果能够，以class声明式替换class定义式
+	
+	3、为声明式和定义式提供不同的头文件
+	
+
 
 #### 六、继承与面向对象设计 (Inheritance and Object-Oriented Design)
 
