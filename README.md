@@ -1136,6 +1136,8 @@ pure virtual函数的两个特性：必须被派生类重新声明，一般是�
 	
 对于non-virtual函数而言，绝对不能在派生类中重新定义，non-virtual函数的意义就是不变性。
 
+个人而言，pure virtual函数更加抽象，每一个derived class都必须去重新定义它，相比于impure virtual函数可能会忘记重新定义，pure virtual看起来似乎更好。不要忘了pure也可以使有定义的。对于设计模式而言越抽象的东西似乎越好（依赖倒置）。
+
 总结：
 + 接口继承和实现继承不同，在public继承下，derived classes总是继承base的接口
 + pure virtual函数只具体指定接口继承
