@@ -1119,7 +1119,7 @@ public类继承指的是单向的更一般化的，例如：
     来解决，但是尽量不要出现这种遮蔽的行为
 
 总结：
-+ derived class 会遮蔽Base class的名称
++ derived class 内的名称会遮蔽Base class的名称，public继承下从来没有人会希望如此。
 + 可以通过using 或者转交函数来解决
 
 **34. 区分接口继承和实现继承  （Differentiate between inheritance of interface and inheritance of implementation)**
