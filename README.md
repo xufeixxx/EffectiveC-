@@ -1124,17 +1124,23 @@ public类继承指的是单向的更一般化的，例如：
 
 **34. 区分接口继承和实现继承  （Differentiate between inheritance of interface and inheritance of implementation)**
 
-pure virtual 函数式提供了一个接口继承，当一个函数式pure virtual的时候，意味着所有的实现都在子类里面实现。不过pure virtual也是可以有实现的，调用他的实现的方法是在调用前加上基类的名称：
-    
-    class Shape{
-        virtual void draw() const = 0;
-    }
-    ps->Shape::draw();
+成员函数：pure virtual函数，impure virtual函数以及non-virtual函数。
+
+首先成员函数的接口总是被继承。
+
+pure virtual函数的两个特性：必须被派生类重新声明，一般是没有定义的。
+	
+所以根据以上特性pure virtual函数目的就是为了让派生类继承函数接口。
+	
+对于impure virtual函数，有定义，并且继承的会是缺省的函数实现和接口。当然派生类也可以重新声明impure virtual函数。重载缺省实现或调用缺省实现。（这里要注意inline与virtual的关系）
+	
+对于non-virtual函数而言，绝对不能在派生类中重新定义，non-virtual函数的意义就是不变性。
+
 总结：
 + 接口继承和实现继承不同，在public继承下，derived classes总是继承base的接口
 + pure virtual函数只具体指定接口继承
 + 简朴的（非纯）impure virtual函数具体指定接口继承以及缺省实现继承
-+ non-virtual函数具体指定接口继承以及强制性的实现继承
++ non-virtual函数具体指定接口继承以及强制性的实现继承，绝不该在derived classes中重新定义。
 
 **35. 考虑virtual函数以外的其他选择  （Consider alternatives to virtual functions)**
 
