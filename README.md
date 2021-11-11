@@ -1212,6 +1212,24 @@ NVI手法：通过public non-virtual成员函数间接调用private virtual函�
 + 绝对不要重新定义继承而来的non-virtual函数
 
 **37. 绝不重新定义继承而来的缺省参数值  （Never redefine a function's inherited default parameter value)**
+	
+C++ Primer plus P409中有关于静态联编和动态联编的概念，静态联编意味着在编译期间确定调用那一个函数，动态联编的就是在运行期间确定运行那一个函数，对于virtual函数来说，使用动态联编的调用对应的函数。
+	
+1.静态类型与动态类型的概念：
+	
+静态类型就是它在程序中被声明时所采用的类型。动态类型则是指目标所指对象的类型。
+
+Shape* ps;//静态类型为Shape*,无动态类型
+Shape* pc = new Circle;//静态类型为Shape*,动态类型为Circle*
+Shape* pr = new Rectangle;//静态类型为Shape*,动态类型为Rectangle*
+	
+2.动态绑定与静态绑定的概念：
+	
+静态绑定：绑定的对象是静态类型，其特性依赖于对象的静态类型，发生在编译期
+
+动态绑定：绑定的对象是动态类型，其特性依赖于对象的动态类型，发生在运行期
+	
+只有虚函数才使用的是动态绑定，其他的全部都是静态绑定.特别需要注意的是，虚函数是动态绑定的，但是为了执行效率，虚函数的缺省参数是静态绑定的.以下代码说明此问题：
 
 原代码：
     
@@ -1225,14 +1243,16 @@ NVI手法：通过public non-virtual成员函数间接调用private virtual函�
         virtual void draw(ShapeColor color=Green)const;//和父类的默认参数不同
     }
     Shape* pr = new Rectangle; // 注意此时pr的静态类型是Shape，但是他的动态类型是Rectangle
-    pr->draw(); //virtual函数是动态绑定，而缺省参数值是静态绑定，所以会调用Red
+    pr->draw(); //virtual函数是动态绑定，而缺省参数值是静态绑定，也就是说将会由静态类型决定缺省参数值，pr为静态类型，所以使用的会是red。但是由于函数的缺省参数值时Green，这就会导致问题。
+	
+	
++ 绝对不要重新定义一个继承而来的缺省参数值，因为缺省参数值都是静态绑定，而virtual函数---你唯一应该覆写的东西确实动态绑定。
 
 **38. 通过复合塑模出has-a或"根据某物实现出"  （Model "has-a" or "is-implemented-in-terms-of" through composition)**
 
-复合：一个类里面有另外一个类的成员，那么这两个类的成员关系就叫做复合（或称聚合，内嵌，内含等）。
-我们认为复合的关系是“has a”的概念，
-
-例如：set并不是一个list，但是set可以has a list：
+复合：复合实际上有两个意义：一个是has-a关系，另一个是is-implemented-in-terms-of(根据某物实现出)。
+	
+例如：set并不是一个list，但是可以根据list实现书set。这个就是（根据某物实现）
     
     template<class T>
     class Set{
