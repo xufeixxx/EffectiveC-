@@ -1207,7 +1207,9 @@ NVI手法：通过public non-virtual成员函数间接调用private virtual函�
     B *pB = &x; pB->mf(); //调用B版本的mf
     D *pD = &x; pD->mf(); // 调用D版本的mf
 
-即使不考虑这种代码层的差异，如果这样重定义的话，也不符合之前的“每一个D都是一个B”的定义
+即使不考虑这种代码层的差异，如果这样重定义的话，也不符合之前的“每一个D都是一个B”的定义，就是不符合public继承所呈现的is-a关系。
+
++ 绝对不要重新定义继承而来的non-virtual函数
 
 **37. 绝不重新定义继承而来的缺省参数值  （Never redefine a function's inherited default parameter value)**
 
