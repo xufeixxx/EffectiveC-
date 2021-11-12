@@ -1303,8 +1303,8 @@ Shape* pr = new Rectangle;//静态类型为Shape*,动态类型为Rectangle*
 当然，多重继承也有他合理的用途，例如一个类刚好继承自两个类的实现。
 
 总结：
-+ 多重继承容易产生歧义
-+ virtual继承会增加大小、速度、初始化复杂度等成本，如果virtual base class不带任何数据，将是最具使用价值的情况
++ 多重继承容易产生歧义，以及对virtual继承的需求。
++ virtual继承会增加大小、速度、初始化复杂度等成本，如果virtual base class不带任何数据（interface class），将是最具使用价值的情况。
 + 多重继承的使用情况：当一个类是“public 继承某个interface class”和“private 继承某个协助实现的class”两个相结合的时候。
 
 #### 七、模板与泛型编程 (Templates and Generic Programming)
