@@ -1337,6 +1337,12 @@ Shape* pr = new Rectangle;//静态类型为Shape*,动态类型为Rectangle*
     }
 + 在上面这段代码中，w必须支持哪一种接口，由template中执行于w身上的操作来决定，例如T必须支持size等函数。这叫做隐式接口
 + 凡涉及到w的任何函数调用，例如operator>，都有可能造成template具现化，使得调用成功，根据不同的T调用具现化出来不同的函数，这叫做编译期多态
+	
+总结：
+ 
++ classes和template都支持接口和多态。
++ 对classes而言接口是显示的，以函数签名为中心。多态则是通过virtual函数发生在运行期。
++ 对template参数而言，接口是隐式的，基于有效的表达式。多态则是通过template具现化和函数重载解析发生于编译期。
 
 **42. 了解typename的双重意义 （Understand the two meanings of typename)**
 
