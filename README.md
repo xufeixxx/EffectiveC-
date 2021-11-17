@@ -1345,6 +1345,21 @@ Shape* pr = new Rectangle;//静态类型为Shape*,动态类型为Rectangle*
 + 对template参数而言，接口是隐式的，基于有效的表达式。多态则是通过template具现化和函数重载解析发生于编译期。
 
 **42. 了解typename的双重意义 （Understand the two meanings of typename)**
+	
+    template<typename C>
+    void print2nd(const C& container){
+	if(container.size()>2){
+	   C::const_iterator iter(container.begin());
+	   ++iter;
+	   int value = *iter;
+	   std::cout<<value;
+	}
+    }
+
+iter的类型取决于C，也就是说取决于template参数。这样的名称称之为从属名称。因为const_iterator嵌套于C，所以此名称又称为嵌套从属名称。
+	
+C++有个规则：如果解析器在template中遭遇一个嵌套从属名称，他便假设这个名称不是一个类型，除非你告诉他（typename）。
+	
 
 下面一段代码：
     
