@@ -1406,6 +1406,8 @@ C++有个规则：如果解析器在template中遭遇一个嵌套从属名称，
             sendClear(info);//无法通过编译，因为找不到一个特例化的MsgSender<company>
         }
     }
+	
+问题在于，当编译器遭遇class template LoggingMsgSender定义式时，并不知道它继承什么样的class。当然它继承的是MsgSender<Company>，但其中的Company是个template参数，不到后来（当LoggingMsgSender被具体化）无法确切知道它试什么。而如果不知道Company是什么，就无法知道class MsgSender<Company>看起来像什么——更明确地说没办法知道它是否有一个sendClear函数。C++往往拒绝在模板基类寻找继承而来的名称，就某种意义而言，当我们从面向对象跨入到Template C++的时候，继承就不会像以前那样畅通无阻了。
 
 解决方法1（认为不是特别好）：
 
@@ -1451,7 +1453,7 @@ C++有个规则：如果解析器在template中遭遇一个嵌套从属名称，
         }
     }
 
-上面那些做法都是对编译器说：base class template的任何特例化版本都支持其一般版本所提供的接口
+上面那些做法都是对编译器说：base class template的任何特例化版本都支持其一般版本所提供的接口，因为template继承，C++知道base class template有可能被特化，但是特化版本可能不提供和一般性tenplate相同的接口。因此往往会拒绝template base class内寻找继承而来的名称。
 
 **44. 将与参数无关的代码抽离templates （Factor parameter-independent code out of templates)**
 
