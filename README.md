@@ -1486,6 +1486,11 @@ C++有个规则：如果解析器在template中遭遇一个嵌套从属名称，
         void invert(){ this->invert(n); }   //一个inline调用，调用base class版的invert
     }
 
+由上面可知，带参数的invert位于base class SquareMatrixBase中。和SquareMatrix一样SquareMatrixBase也是一个template。不同的是它支队”矩阵元素对象的类型“参数化，不对尺寸进行参数化。
+	
+因此对于某给定之元素对象类型，所有矩阵共享同一个SquareMatrixBase class。它们也将因此共享这唯一一个class内的invert。
+	
+
 当然因为矩阵数据可能会不一样，例如5x5的矩阵和10x10的矩阵计算方式会不一样，输入的矩阵数据也会不一样，采用指针指向矩阵数据的方法会比较好：
     
     template<typename T, std::size_t n>
