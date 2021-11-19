@@ -1510,13 +1510,44 @@ C++有个规则：如果解析器在template中遭遇一个嵌套从属名称，
 
 **45. 运用成员函数模板接受所有兼容类型 （Use member function templates to accept "all compatible types.")**
 
-    Top* pt2 = new Bottom; //将Bottom*转换为Top*是很容易的
+如果有下面的继承结构：
+	
+    class Top {...}
+    class Middle: public Top {...}
+    class Bottom: public Middle {...}
+	
+当我们自己写一个智能指针类，SmartPtr，就像shared_ptr一样，可以进行一定的转换，如下：
+	
     template<typename T>
     class SmartPtr{
-        public:
-        explicit SmartPtr(T* realPtr);
+	public:
+	explicit SmartPtr(T* realptr);
+	...
     };
-    SmartPtr<Top> pt2 = SmartPtr<Bottom>(new Bottom);//将SmartPtr<Bottom>转换成SmartPtr<Top>是有些麻烦的
+	
+    SmartPtr<Top> pt1 = SmartPtr<Middle>(new Middle);
+	
+上面语句肯定是不行的，因为同一个template的不同实现之间并不存在什么与生俱来的故有关系。
+	
+为了实现上述功能我们必须将它具体写出来，也就是说可以使用copy构造函数：
+	
+    class SmartPtr{
+	public:
+	SmartPtr(const SmartPtr<Middle>& sm);
+	...
+    }
+
+如果按照上面的方式写的话，似乎永远也写不完，因为关于上述的继承体系可能还会有新的继承关系的出现。这时我们就需要成员函数模板，为class生成函数。
+	
+    template<typename T>
+    class SmartPtr{
+	public:
+	template<typename T>
+	SmartPtr(const SmartPtr<T>& other);
+	...
+    };
+
+上面的成员函数模板可以理解为泛化的copy构造函数。
 
 但是我们只是希望SmartPtr<Bottom>转换成SmartPtr<Top>，而不希望SmartPtr<Top>转换成SmartPtr<Bottom>
 这种需求可以通过构造模板来实现：
@@ -1531,10 +1562,19 @@ C++有个规则：如果解析器在template中遭遇一个嵌套从属名称，
     private:
         T* heldPtr;                        //这个SmartPtr持有的内置原始指针
     };
+	
+这个行为只有当“存在某个隐式转换可将一个U*指针转为一个T*指针”时才能通过编译。
+	
+成员函数模板的效用不限于构造函数，它们常扮演的另一个角色时支持赋值操作，也就是时赋值运算符操作。
+	
+    template<class Y>
+    shared_ptr& operator=(shared_ptr<Y> const& r);
+
+注意成员函数模板并不改变语言的基本规则。
 
 总结:
 + 使用成员函数模板生成“可接受所有兼容类型”的函数
-+ 如果还想泛化copy构造函数、操作符重载等，同样需要在前面加上template
++ 如果你声明member templates用于“泛化copy构造”或“泛化assignment操作”，你还是需要声明正常的copy构造函数和copy assignment操作符。
 
 **46. 需要类型转换时请为模板定义非成员函数 （Define non-member functions inside templates when type conversions are desired)**
 
@@ -1545,6 +1585,9 @@ C++有个规则：如果解析器在template中遭遇一个嵌套从属名称，
     
     Rational<int> oneHalf(1, 2);
     Rational<int> result = oneHalf * 2; //错误，无法通过编译
+	
+operator*的第二个参数被声明为Rational<T>，但是传递给第二个参数的是2，类型为int。但是C++不会自动推导出T的类型为int，因为template实参推导过程中并不考虑采纳“通过构造函数而发生的”隐式类型转换。
+	
 
 解决方法：使用friend声明一个函数,进行混合式调用
     
@@ -1555,8 +1598,36 @@ C++有个规则：如果解析器在template中遭遇一个嵌套从属名称，
             return Rational(lhs.numerator()*rhs.numerator(), lhs.denominator() * rhs.denominator());
         }
     };
+	
+这项技术的一个趣味点是，虽然使用了friend，但却与friend的传统用途“访问class的non-public成分”毫不相干。为了让类型转换可能发生于所有实参身上，我们需要一个non-member函数（条款24）；
+	
+为了令函数被自动具现化需要将他声明在class内部；而在class内部声明non-member函数的唯一办法就是：令他成为一个friend。
+	
+operator*是一个隐喻的inline函数，为了将inline函数带来的冲击最小化，做法是令operator*不做任何事情，只调用一个定义域class外部的辅助函数。
+	
+    template<typename T>class Rational;
+
     template<typename T>
-    const Rational<T> operator*(const Rational<T>& lhs, const Rational<T>&rhs){....}
+    const Rational<T> doMultiply(const Rational<T>& lhs, const Rational<T>& rhs) {
+	    return Rational(lhs.numerator() * rhs.numerator(), lhs.denominator() * rhs.denominator());
+    }
+
+
+    template<typename T>
+    class Rational {
+    private:
+	    T numer;
+	    T denomin;
+    public:
+	    Rational(const T& numerator = 0, const T& denominator = 1);
+	    const T numerator()const;
+	    const T denominator()const;
+
+	    friend const Rational operator*(const Rational& lhs, const Rational& rhs) {
+		    return doMultiply(lhs, rhs);
+	    }
+    };
+
 
 总结：
 + 当我们编写一个class template， 而他所提供的“与此template相关的”函数支持所有参数隐形类型转换时，请将那些函数定义为classtemplate内部的friend函数
