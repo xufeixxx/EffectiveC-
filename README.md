@@ -1658,6 +1658,8 @@ traits是一种允许你在编译期间取得某些类型信息的技术，或�
     struct iterator_traits<IterT*>{
         typedef random_access_iterator_tag iterator_category;
     }
+	
+如果不懂见https://blog.csdn.net/lihao21/article/details/55043881
 
 综上所述，设计并实现一个traits class：
 + 确认若干你希望将来可取得的类型相关信息，例如对迭代器而言，我们希望将来可取得其分类
@@ -1687,6 +1689,32 @@ traits是一种允许你在编译期间取得某些类型信息的技术，或�
 使用一个traits class:
 + 建立一组重载函数（像劳工）或者函数模板（例如doAdvance），彼此间的差异只在于各自的traits参数，令每个函数实现码与其接受traits信息相应
 + 建立一个控制函数（像工头）或者函数模板（例如advance），用于调用上述重载函数并且传递traits class所提供的信息
++ 总体上来说我们可以使用traits技术实现编译期间的类型识别。
+	
+见程序rule47_2,内容为：
+	
+	#include<iostream>
+	#include<list>
+	#include<vector>
+
+	template<typename IterT>
+	struct iterator_traits {
+		typedef typename IterT::iterator_category iterator_category;
+	};
+
+	template<typename IterT>
+	struct iterator_traits<IterT*> {
+		typedef std::random_access_iterator_tag iterator_category;
+	};
+
+	int main() {
+
+		iterator_traits<char*>::iterator_category k;
+		iterator_traits<std::vector<int>::iterator>::iterator_category l;
+
+	}
+	
+由上面会发现在main函数中，不需要运行，直接就能识别k和l的类型。很神奇吧，这就是traits。
 
 **48. 认识template元编程 （Be aware of template metaprogramming)**
 
