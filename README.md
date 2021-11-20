@@ -1718,7 +1718,7 @@ traits是一种允许你在编译期间取得某些类型信息的技术，或�
 
 **48. 认识template元编程 （Be aware of template metaprogramming)**
 
-Template metaprogramming是编写执行于编译期间的程序，因为这些代码运行于编译器而不是运行期，所以效率会很高，同时一些运行期容易出现的问题也容易暴露出来
+Template metaprogramming是编写执行于编译期间的程序，因为这些代码运行于编译器而不是运行期，所以效率会很高，同时一些运行期容易出现的问题也容易暴露出来。
     
     template<unsigned n>
     struct Factorial{
@@ -1731,6 +1731,10 @@ Template metaprogramming是编写执行于编译期间的程序，因为这些�
         enum{ value = 1 };
     };                       //这就是一个计算阶乘的元编程
 
+条款47所说的traits技术就是TMP。
+	
++ Template metaprogramming(TMP,模板元编程)可将工作有运行期转移到编译期，因而得以实现早期错误侦测和更高的执行效率
++ TMP可被用来生成“基于政策选择组合”的客户定制代码，也可以用来避免生成对某些特殊类型并不适合的代码。
 
 #### 八、定制new和delete (Customizing new and delete)
 
