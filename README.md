@@ -1902,7 +1902,7 @@ NewHandlerHolder是一个资源管理类所以根据条款14，copying操作都�
 
 如果operator new接受的参数除了一定会有的size_t之外还有其他的参数，这个就是所谓的palcement new。
 
-void* operator new(std::size_t, void* pMemory) throw(); //placement new，pMemeory指向要分配的内存的地址，所以函数但会的就是pMemory。C++11和C++98中标准库中都有此函数。
+	void* operator new(std::size_t, void* pMemory) throw(); //placement new，pMemeory指向要分配的内存的地址，所以函数但会的就是pMemory。C++11和C++98中标准库中都有此函数。
 
 但是需要了解的是：一般性术语“placement new”意味着带任意额外参数的new。而不是单单值标准库中的placement operator new.(https://www.cplusplus.com/reference/new/operator%20new/?kw=operator%20new)
 	
