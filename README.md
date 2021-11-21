@@ -1891,11 +1891,59 @@ NewHandlerHolder是一个资源管理类所以根据条款14，copying操作都�
 + operator delete应该在收到null指针时不做任何事情。Class专属版本则还应该处理“比正确大小更大的（错误）申请”。
 
 **52. 写了placement new也要写placement delete（Write placement delete if you write placement new)**
+	
+	Widget* pw = new Widget;
+	
+共有两个函数被调用：一个是用来分配内存的operator new，一个是Widget的default构造函数。
+	
+假设第一个函数调用成功，第二个函数抛出异常。步骤一所分配的内存必须被释放，系统会调用operator new所对应的operator delete，前提是必须知道哪一个operator delete该被调用。
+	
+因此当你使用正常的new和delete的时候，系统会正常的运行并找到正确的operator delete函数。
 
-如果operator new接受的参数除了一定会有的size_t之外还有其他的参数，这个就是所谓的palcement new
+如果operator new接受的参数除了一定会有的size_t之外还有其他的参数，这个就是所谓的palcement new。
 
-void* operator new(std::size_t, void* pMemory) throw(); //placement new
-static void operator delete(void* pMemory) throw();     //palcement delete，此时要注意名称遮掩问题
+void* operator new(std::size_t, void* pMemory) throw(); //placement new，pMemeory指向要分配的内存的地址，所以函数但会的就是pMemory。C++11和C++98中标准库中都有此函数。
+
+但是需要了解的是：一般性术语“placement new”意味着带任意额外参数的new。而不是单单值标准库中的placement operator new.(https://www.cplusplus.com/reference/new/operator%20new/?kw=operator%20new)
+	
+看下面代码：
+	
+	class Widget{
+	public:
+	   ...
+	   static void* operator new(std::size_t size,std::ostream& logStream); // placement new
+	   static void operator delete (void* pMemory,std::size_t size); // 正常class专属的delete
+	}
+	
+上面的operator new就是一个placement new,注意这个操作在执行构造函数的时候抛出异常，可能会造成内存泄漏。
+	
+需要解决的方法是：如果构造函数抛出异常，系统会寻找“参数个数和类型都与operator new相同”的某个operator delete。需要在Widget中加入：
+	
+	static void operator delete(void* pmemory,std::ostream& logStream);
+
+加上上面的语句后执行：
+	
+	Widget* pw = new (std::cerr) Widget;
+	
+不会出现内存泄漏的情况。如果构造函数没有抛出异常，使用：
+	
+	delete pw;
+
+上面的delete只会调用正常的operator delete。placement delete只会在placement new调用而出发的构造函数出现异常的时候才会被调用。这意味着我们还需要定义一个正常的operator delete。
+	
+注意在一个class中定义operator new时，可能会覆盖global中的正常的operator new。
+	
+	Base* pb = new Base;//错误
+	Base* pb = new(std::cerr) Base;//正确
+	
+我们需要做的就是采用条款33中的定义的方法。在一个base class中定义所有可能被覆盖的方法，只需要去继承这个base class即可。
+	
++ 当你写一个placement operator new，请确定也写出了对应的placement operator delete。如果没有这样做你的程序可能会发生内存泄漏。
++ 当你声明placement new 和placement delete，请确定非故意的遮掩了它们的正常版本。
+	
+
+	
+
 
 #### 杂项讨论 (Miscellany)
 
