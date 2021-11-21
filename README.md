@@ -1809,6 +1809,23 @@ NewHandlerHolder是一个资源管理类所以根据条款14，copying操作都�
 
 
 **50. 了解new和delete的合理替换时机 （Understand when it makes sense to replace new and delete)**
+	
+一个简单的定制operator new的例子，促进并协助检测“overruns”或“underruns”，但是其中包括不少的小错误。
+	
+	static const int signature = 0xDAADBEEE;
+	typedef unsigned char Byte;
+	void* operator new(std::size_t size) {
+		std::size_t realSize = size + 2 * sizeof(int);
+		void* pMem = malloc(realSize);
+		if (!pMem) throw std::bad_alloc();
+
+		*(static_cast<int*>(pMem)) = signature;
+		*(reinterpret_cast<int*>(static_cast<Byte*>(pMem) + realSize - sizeof(int))) = signature;
+
+		return static_cast<Byte*>(pMem) + sizeof(int);
+	}
+	
+首先上面的operator new 并没有考虑循环调用new_handler函数，其次也没有考虑内存对齐的问题，关于内存对齐参考onenote只当作一个参考就好。挺有意思的东西。
 
 + 用来检测运用上的错误，如果new的内存delete的时候失败掉了就会导致内存泄漏，定制的时候可以进行检测和定位对应的失败位置
 + 为了强化效率（传统的new是为了适应各种不同需求而制作的，所以效率上就很中庸）
@@ -1817,6 +1834,8 @@ NewHandlerHolder是一个资源管理类所以根据条款14，copying操作都�
 + 为了降低缺省内存管理器带来的空间额外开销
 + 为了弥补缺省分配器中的非最佳对齐位
 + 为了将相关对象成簇集中起来
++ 为了获得非传统的行为
+	
 
 **51. 编写new和delete时需固守常规（Adhere to convention when writing new and delete)**
 
