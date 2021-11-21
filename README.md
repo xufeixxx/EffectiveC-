@@ -1739,12 +1739,62 @@ Template metaprogramming是编写执行于编译期间的程序，因为这些�
 #### 八、定制new和delete (Customizing new and delete)
 
 **49. 了解new-handler的行为 （Understand the behavior of the new-handler)**
+	
+先来看看C++11中对operator new的定义（http://www.cplusplus.com/reference/new/operator%20new/?kw=operator%20new）：
 
-当new无法申请到新的内存的时候，会不断的调用new-handler，直到找到足够的内存,new_handler是一个错误处理函数：
-    namespace std{
-        typedef void(*new_handler)();
-        new_handler set_new_handler(new_handler p) throw();
-    }
+void* operator new (std::size_t size);
+void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept;
+	
+第一个函数在分配内存失败的时候会抛出一个bad_alloc异常，第二个函数不会抛出异常之会返回一个null pointer。
+	
+如果 set_new_handler 已被用于定义 new_handler 函数，则如果上面两个函数未能分配所请求的存储空间，则该 new-handler 函数将被调用。
+	
+new_handler是一个函数指针，所指函数在分配内存失败的时候被调用：
+	
+namespace std {
+    typedef void (*new_handler)();
+    new_handler set_new_handler(new_handler) noexcept;
+}
+	
+set_new_handler的参数指向operator new无法分配内存时调用的函数，返回值为被调用前正在执行的那个函数。
+
+当new无法申请到新的内存的时候，会不断的调用new-handler，直到找到足够的内存。
+	
+C++不支持class专属的new_handler,其实也没有必要。可以自己实现这种行为：
+	
+class NewHanlderHolder;
+
+class Widget {
+public:
+	static std::new_handler currentHandler;
+public:
+	static std::new_handler set_new_handler(std::new_handler p) noexcept;
+	static void* operator new(std::size_t size);
+};
+
+std::new_handler Widget::set_new_handler(std::new_handler p) {
+	std::new_handler old_handler = currentHandler;
+	currentHandler = p;
+	return old_handler;
+}
+
+void* Widget::operator new(std::size_t size) {
+
+	NewHandlerHolder h(std::set_new_handler(currentHandler));
+	return ::operator new(size);
+}
+
+class NewHandlerHolder {
+private:
+	std::new_handler handler;
+public:
+	explicit NewHandlerHolder(std::new_handler nh) :handler(nh) {}
+	~NewHandlerHolder() { std::set_new_handler(handler); }
+	NewHandlerHolder(const NewHandlerHolder&) = delete;
+	NewHandlerHolder& operator=(const NewHandlerHolder&) = delete;
+};
+	
+NewHandlerHolder是一个资源管理类所以根据条款14，copying操作都要置为delete。这里的资源管理类的作用是回复global new_handler。
 
 一个设计良好的new-handler要做下面的事情：
 + 让更多内存可以被使用
@@ -1753,17 +1803,10 @@ Template metaprogramming是编写执行于编译期间的程序，因为这些�
 + 抛出bad_alloc的异常
 + 不返回，调用abort或者exit
 
-new-handler无法给每个class进行定制，但是可以重写new运算符，设计出自己的new-handler
-此时这个new应该类似于下面的实现方式：
-    
-    void* Widget::operator new(std::size_t size) throw(std::bad_alloc){
-        NewHandlerHolder h(std::set_new_handler(currentHandler));      // 安装Widget的new-handler
-        return ::operator new(size);                                   //分配内存或者抛出异常，恢复global new-handler
-    }
-
 总结：
-+ set_new_handler允许客户制定一个函数，在内存分配无法获得满足时被调用
-+ Nothrow new是一个没什么用的东西
++ set_new_handler允许客户制定一个函数，在内存分配无法获得满足时被调用 
++ Nothrow new是一个没什么用的东西，没有运用std::nothrow的必要。 MyClass * p2 = new (std::nothrow) MyClass;
+
 
 **50. 了解new和delete的合理替换时机 （Understand when it makes sense to replace new and delete)**
 
