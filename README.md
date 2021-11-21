@@ -1840,7 +1840,7 @@ NewHandlerHolder是一个资源管理类所以根据条款14，copying操作都�
 **51. 编写new和delete时需固守常规（Adhere to convention when writing new and delete)**
 
 
-	 编写自己的operator new和operator delete函数时，需要遵守几个固有的规定：
+	编写自己的operator new和operator delete函数时，需要遵守几个固有的规定：
 	
 	1.operator new函数在一次尝试内存分配失败的时候，应该在一个无穷循环内调用new_handler函数，直到内存分派成功或者抛出一个异常。
 	2.即使size为0，也是符合要求的。
@@ -1864,20 +1864,31 @@ NewHandlerHolder是一个资源管理类所以根据条款14，copying操作都�
 		}
 	}
 	
-	3.当operator new是一个成员函数时，需要考虑derived class与base class的大小不同的问题。
+	3.当operator new是一个成员函数时，需要考虑derived class与base class的大小不同的问题。下面的函数实在Base class中定义的。根据条款39中所说，对于一个独立的空类的size也不会是0。所以下面代码不用判断size是否为0。
 	
 	void* Base::operator new(std::size_t size){
 		if(size != size(Bse))
 		    return ::operator new(size);
 	}
 	
+	4.对于operator delete来说，第一的需要之一的就是delete null是合理的。下面是non-member函数：
 	
+	void operator delete(void* rawMemory){
+		if(rawMemory == 0) return;
+	}
 	
+	5.对于member函数，需要增加一个删除数量。跟上面的derived class的大小与base class大小不同一个道理。
 	
+	void Base::operator delete(void* rawMemory,std::size_t size){
+		if(rawMemory == 0)return ;
+		if(size != sizeof(Base)){
+			::operator delete(rawMemory);
+			return;
+		}
+	}
 	
-	
-+ 重写new的时候要保证49条的情况，要能够处理0bytes内存申请等所有意外情况
-+ 重写delete的时候，要保证删除null指针永远是安全的
++ operator new应该内含一个无穷循环，并在其中尝试分配内存，如果她无法满足内存需求，就该调用new_handler。它也应该有能力处理0bytes申请。Class专属版本则应该处理“比正确大小更大的（错误）申请”。
++ operator delete应该在收到null指针时不做任何事情。Class专属版本则还应该处理“比正确大小更大的（错误）申请”。
 
 **52. 写了placement new也要写placement delete（Write placement delete if you write placement new)**
 
