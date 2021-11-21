@@ -1742,8 +1742,8 @@ Template metaprogramming是编写执行于编译期间的程序，因为这些�
 	
 先来看看C++11中对operator new的定义（http://www.cplusplus.com/reference/new/operator%20new/?kw=operator%20new）：
 
-void* operator new (std::size_t size);
-void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept;
+	void* operator new (std::size_t size);
+	void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept;
 	
 第一个函数在分配内存失败的时候会抛出一个bad_alloc异常，第二个函数不会抛出异常之会返回一个null pointer。
 	
@@ -1751,10 +1751,10 @@ void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexc
 	
 new_handler是一个函数指针，所指函数在分配内存失败的时候被调用：
 	
-namespace std {
-    typedef void (*new_handler)();
-    new_handler set_new_handler(new_handler) noexcept;
-}
+	namespace std {
+    	    typedef void (*new_handler)();
+            new_handler set_new_handler(new_handler) noexcept;
+	}
 	
 set_new_handler的参数指向operator new无法分配内存时调用的函数，返回值为被调用前正在执行的那个函数。
 
@@ -1762,37 +1762,37 @@ set_new_handler的参数指向operator new无法分配内存时调用的函数�
 	
 C++不支持class专属的new_handler,其实也没有必要。可以自己实现这种行为：
 	
-class NewHanlderHolder;
+	class NewHanlderHolder;
 
-class Widget {
-public:
-	static std::new_handler currentHandler;
-public:
-	static std::new_handler set_new_handler(std::new_handler p) noexcept;
-	static void* operator new(std::size_t size);
-};
+	class Widget {
+	public:
+	    static std::new_handler currentHandler;
+	public:
+	    static std::new_handler set_new_handler(std::new_handler p) noexcept;
+            static void* operator new(std::size_t size);
+	};
 
-std::new_handler Widget::set_new_handler(std::new_handler p) {
-	std::new_handler old_handler = currentHandler;
-	currentHandler = p;
-	return old_handler;
-}
+	std::new_handler Widget::set_new_handler(std::new_handler p) {
+	    std::new_handler old_handler = currentHandler;
+	    currentHandler = p;
+            return old_handler;
+	}
 
-void* Widget::operator new(std::size_t size) {
+	void* Widget::operator new(std::size_t size) {
 
-	NewHandlerHolder h(std::set_new_handler(currentHandler));
-	return ::operator new(size);
-}
+	    NewHandlerHolder h(std::set_new_handler(currentHandler));
+	    return ::operator new(size);
+	}
 
-class NewHandlerHolder {
-private:
-	std::new_handler handler;
-public:
-	explicit NewHandlerHolder(std::new_handler nh) :handler(nh) {}
-	~NewHandlerHolder() { std::set_new_handler(handler); }
-	NewHandlerHolder(const NewHandlerHolder&) = delete;
-	NewHandlerHolder& operator=(const NewHandlerHolder&) = delete;
-};
+	class NewHandlerHolder {
+	private:
+	    std::new_handler handler;
+	public:
+	    explicit NewHandlerHolder(std::new_handler nh) :handler(nh) {}
+            ~NewHandlerHolder() { std::set_new_handler(handler); }
+	    NewHandlerHolder(const NewHandlerHolder&) = delete;
+	    NewHandlerHolder& operator=(const NewHandlerHolder&) = delete;
+	};
 	
 NewHandlerHolder是一个资源管理类所以根据条款14，copying操作都要置为delete。这里的资源管理类的作用是回复global new_handler。
 
