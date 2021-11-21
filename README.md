@@ -1839,6 +1839,43 @@ NewHandlerHolder是一个资源管理类所以根据条款14，copying操作都�
 
 **51. 编写new和delete时需固守常规（Adhere to convention when writing new and delete)**
 
+
+	 编写自己的operator new和operator delete函数时，需要遵守几个固有的规定：
+	
+	1.operator new函数在一次尝试内存分配失败的时候，应该在一个无穷循环内调用new_handler函数，直到内存分派成功或者抛出一个异常。
+	2.即使size为0，也是符合要求的。
+	
+	//non-member 函数
+	void* operator new(std::size_t size) {
+		using namespace std;
+		if (size == 0)
+			size == 1;
+		while (true) {
+			//尝试分配size bytes
+			//if(分配成功）
+			//return (一个指针，指向分配而来的内存)
+
+			//分配失败：找出目前的new_handler函数
+			new_handler globalHandler = set_new_handler(0);
+			set_new_handler(globalHandler);
+
+			if (globalHandler) globalHandler();
+			else throw bad_alloc();
+		}
+	}
+	
+	3.当operator new是一个成员函数时，需要考虑derived class与base class的大小不同的问题。
+	
+	void* Base::operator new(std::size_t size){
+		if(size != size(Bse))
+		    return ::operator new(size);
+	}
+	
+	
+	
+	
+	
+	
 + 重写new的时候要保证49条的情况，要能够处理0bytes内存申请等所有意外情况
 + 重写delete的时候，要保证删除null指针永远是安全的
 
