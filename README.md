@@ -162,6 +162,8 @@ static对象（持续性为从出生到程序运行结束，因为特有的持�
 + 3.无连接性。定义在函数中，作用域仅为函数。
 第三点称为local static对象，其余称为non-local static对象。
 
+注意：只有定义在函数中的static变量才成为local static变量，其余位置（包括类、名称空间等）都是non-local static变量，而且non-loacl static变量的初始化次序是没有明确定义的
+
 C++对于定义在不同编译单元的non-local static对象初始化次序并没有明确定义。
 除了这些以外，如果我们有两个文件A和B，需要分别编译，A构造函数中用到了B中的对象，那么初始化A和B的顺序就很重要了，这些变量称为（non-local static对象）
 
